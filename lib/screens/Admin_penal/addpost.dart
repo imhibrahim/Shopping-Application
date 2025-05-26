@@ -17,6 +17,7 @@ class _AddpostState extends State<Addpost> {
   Widget build(BuildContext context) {
     final NameController = TextEditingController();
     final DescController = TextEditingController();
+
     final loading = false;
     final databseRef = FirebaseDatabase.instance.ref('Post');
     void addPost() {
@@ -126,6 +127,5 @@ class _AddpostState extends State<Addpost> {
         ],
       ),
     );
-  
   }
 }

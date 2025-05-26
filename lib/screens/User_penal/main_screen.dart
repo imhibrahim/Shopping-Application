@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:shoopingapp/utlis/app_constain.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -12,6 +13,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final DatabasePost = FirebaseDatabase.instance.ref("Product");
+
   List<Map<String, dynamic>> imageList = [
     {"id": 1, "imageurl": "assets/pic/slider1.jpg"},
     {"id": 2, "imageurl": "assets/pic/slider2.jpg"},
@@ -77,6 +80,15 @@ class _MainScreenState extends State<MainScreen> {
               HeadingSubTitle: "According to Yuor Budget",
               onTap: () {},
               buttonText: "See More",
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Container(width: 100, height: 100),
+                Container(width: 100, height: 100),
+              ],
             ),
           ),
         ],
