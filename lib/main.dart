@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:shoopingapp/firebase_options.dart';
 import 'package:shoopingapp/screens/Admin_penal/Admin.dart';
+import 'package:shoopingapp/screens/Admin_penal/addbook.dart';
 import 'package:shoopingapp/screens/Admin_penal/addpost.dart';
 import 'package:shoopingapp/screens/Admin_penal/fatchAll.dart';
 import 'package:shoopingapp/screens/Admin_penal/fatchData.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       //home: AdminScreen(),
       //home: Signup(),
+      // home: ProductAdd(),
       home: ProductAdd(),
       //home: SignIn(),
       builder: EasyLoading.init(),
