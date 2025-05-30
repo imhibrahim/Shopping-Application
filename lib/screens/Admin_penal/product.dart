@@ -57,9 +57,11 @@ class _ProductAddState extends State<ProductAdd> {
   final DescController = TextEditingController();
   final PriceController = TextEditingController();
   final imageController = TextEditingController();
+
   bool isUploading = false;
   final ImagePicker _picker = ImagePicker();
   String? _uploadedImageBase64;
+
   Future<void> pickImage() async {
     if (kIsWeb) {
       final html.FileUploadInputElement uploadInput =
@@ -70,11 +72,12 @@ class _ProductAddState extends State<ProductAdd> {
       uploadInput.onChange.listen((e) async {
         final files = uploadInput.files;
         if (files!.isEmpty) return;
-        final reader = html.FileReader();
 
+        final reader = html.FileReader();
         reader.readAsArrayBuffer(files[0]);
         reader.onLoadEnd.listen((e) async {
           final Uint8List data = reader.result as Uint8List;
+          
           setState(() {
             _uploadedImageBase64 = base64Encode(data);
           });
@@ -120,7 +123,7 @@ class _ProductAddState extends State<ProductAdd> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ProductList()),
+          MaterialPageRoute(builder: (context) => FatchAll()),
         );
       } catch (error) {
         EasyLoading.showError("Error adding product: $error");
@@ -129,9 +132,6 @@ class _ProductAddState extends State<ProductAdd> {
       EasyLoading.showError("Please fill all fields before submitting");
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {

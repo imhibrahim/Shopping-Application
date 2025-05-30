@@ -136,11 +136,9 @@ class _ProductListState extends State<ProductList> {
   ) {
     final proController = TextEditingController(text: product['protitle']);
     final desController = TextEditingController(text: product['Description']);
-    final priceController = TextEditingController(
-      text: product['price'].toString(),
-    );
+    final priceController = TextEditingController(text: product['price'].toString());
     String? _uploadedImageBase64 =
-        product['Image']; // Initialize with current image data
+product['Image']; // Initialize with current image data
 
     showDialog(
       context: context,
@@ -209,6 +207,14 @@ class _ProductListState extends State<ProductList> {
     );
   }
 
+
+
+
+
+
+
+
+
   Future<void> _pickImage(Function(String) onImagePicked) async {
     if (kIsWeb) {
       final html.FileUploadInputElement uploadInput =
@@ -224,6 +230,7 @@ class _ProductListState extends State<ProductList> {
         reader.readAsArrayBuffer(files[0]);
         reader.onLoadEnd.listen((e) async {
           final Uint8List data = reader.result as Uint8List;
+          
           String base64Image = base64Encode(data);
           onImagePicked(base64Image);
           Fluttertoast.showToast(msg: "Image selected successfully");

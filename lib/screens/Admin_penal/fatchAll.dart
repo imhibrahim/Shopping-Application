@@ -1,9 +1,19 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:shoopingapp/screens/Admin_penal/addpost.dart';
 import 'package:shoopingapp/screens/Admin_penal/product.dart';
+import 'package:shoopingapp/utlis/app_constain.dart';
 import 'package:shoopingapp/widgets/admindrawer.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'dart:html' as html;
 
 class FatchAll extends StatefulWidget {
   const FatchAll({super.key});
@@ -13,7 +23,6 @@ class FatchAll extends StatefulWidget {
 }
 
 class _FatchAllState extends State<FatchAll> {
-  final DatabasePost = FirebaseDatabase.instance.ref("Product");
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,113 +37,269 @@ class _FatchAllState extends State<FatchAll> {
         },
         child: Icon(Icons.add),
       ),
-      body: FirebaseAnimatedList(
-        query: DatabasePost,
-        itemBuilder: (context, snapshot, animation, index) {
-          String postId = snapshot.key!;
-          String title = snapshot.child("Title").value as String? ?? "No Title";
-          String description =
-              snapshot.child("Description").value as String? ??
-              "No Description";
-          String Price = snapshot.child("Price").value as String? ?? "No Price";
-          String Picture =
-              snapshot.child("Image").value as String? ?? "Not Image Found";
-
-          return Card(
-            color: Colors.white70,
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            elevation: 20,
-            child: Column(
-              children: [
-                ListTile(
-                  title: Text(title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            Center(child: Text("Error : ${snapshot.error}"));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No products found.'));
+          }
+          final products = snapshot.data!.docs;
+          return ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index].data() as Map<String, dynamic>;
+              final productId = products[index].id;
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 15,
+                ),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
                     children: [
-                      Text(description),
-
-                      Text("Price: ₹$Price"),
-                      SizedBox(height: 5),
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color:
-                                Colors.black, // You can change the border color
-                            width: 2, // Border thickness
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.transparent,
-                            child: ClipOval(
-                              child: Image.network(
-                                Picture,
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (context, error, stackTrace) =>
-                                        Icon(Icons.broken_image),
+                      product['Image'] != null
+                          ? Container(
+                            height: 80,
+                            width: 80,
+                            child: CircleAvatar(
+                              radius: 50, // Half of the container size
+                              backgroundImage: MemoryImage(
+                                base64Decode(product['Image']),
                               ),
                             ),
-                          ),
+                          )
+                          : Container(),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product['protitle'] ?? 'No Title',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              product['Description'] ?? 'No Description',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            SizedBox(height: 8),
+                            Text(
+                              'Price: \$${product['price'] ?? 'N/A'}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
                       IconButton(
-                        icon: Icon(Icons.edit, color: Colors.green),
+                        icon: Icon(Icons.edit),
                         onPressed: () {
-                          // Edit logic
+                          // Call edit function and pass product data
+                          editproduct(context, productId, product);
                         },
                       ),
+                      // Delete button
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete),
                         onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (value) => AlertDialog(
-                                  title: Text("Confirm Delete"),
-                                  content: Text(
-                                    "Are you sure you want to delete this post?",
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text("Cancel"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        // deleteData(postId);
-                                      },
-                                      child: Text(
-                                        "Delete",
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                          );
+                          // Call delete function
+                          // _deleteProduct(productId);
                         },
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
     );
-    ;
+  }
+
+  void editproduct(
+    BuildContext context,
+    String productId,
+    Map<String, dynamic> product,
+  ) {
+    final proController = TextEditingController(text: product['protitle']);
+    final desController = TextEditingController(text: product['Description']);
+    final priceController = TextEditingController(
+      text: product['price'].toString(),
+    );
+    String? _uploadedImageBase64 = product['Image'];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit Product"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextField(
+                    controller: proController,
+                    cursorColor: AppConstent.appSecondaryColor,
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                      hintText: "Product",
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextField(
+                    controller: desController,
+                    cursorColor: AppConstent.appSecondaryColor,
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                      hintText: "Description",
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextField(
+                    controller: priceController,
+                    cursorColor: AppConstent.appSecondaryColor,
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                      hintText: "Price",
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                ),
+
+                ElevatedButton(
+                  onPressed:
+                      () => _pickImage((base64) {
+                        setState(() {
+                          _uploadedImageBase64 =
+                              base64; // Update with new image data
+                        });
+                      }),
+                  child: Text("Select Image"),
+                ),
+                if (_uploadedImageBase64 != null)
+                  Image.memory(
+                    base64Decode(_uploadedImageBase64!),
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.cover,
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                _updateProduct(
+                  productId,
+                  proController.text,
+                  desController.text,
+                  priceController.text,
+                  _uploadedImageBase64,
+                );
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text("Update"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Close the dialog
+              child: Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  final ImagePicker _picker = ImagePicker();
+  String? _uploadedImageBase64;
+  Future<void> _pickImage(Function(String) onImagePicked) async {
+    if (kIsWeb) {
+      final html.FileUploadInputElement uploadInput =
+          html.FileUploadInputElement();
+      uploadInput.accept = "image/*";
+      uploadInput.click();
+
+      uploadInput.onChange.listen((e) async {
+        final files = uploadInput.files;
+        if (files!.isEmpty) return;
+        final reader = html.FileReader();
+
+        reader.readAsArrayBuffer(files[0]);
+        reader.onLoadEnd.listen((e) async {
+          final Uint8List data = reader.result as Uint8List;
+          String base64Image = base64Encode(data);
+          onImagePicked(base64Image);
+          Fluttertoast.showToast(msg: "Image selected successfully");
+        });
+      });
+    } else {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        Uint8List data = await image.readAsBytes();
+        setState(() {
+          _uploadedImageBase64 = base64Encode(data);
+        });
+        Fluttertoast.showToast(msg: "Image selected successfully");
+      }
+    }
+  }
+
+  Future<void> _updateProduct(
+    String productId,
+    String title,
+    String description,
+    String price,
+    String? imageBase64,
+  ) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .update({
+            'protitle': title,
+            'Description': description,
+            'price': price,
+            'Image': imageBase64,
+          });
+      Fluttertoast.showToast(msg: "Product updated successfully");
+    } catch (error) {
+      Fluttertoast.showToast(msg: "Error updating product: $error");
+    }
   }
 }

@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
       //home: AdminScreen(),
       //home: Signup(),
       // home: ProductAdd(),
-      home: ProductAdd(),
+      home: FatchAll(),
       //home: SignIn(),
       builder: EasyLoading.init(),
     );
